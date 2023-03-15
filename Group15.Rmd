@@ -1,0 +1,159 @@
+---
+title: "Groupwork2"
+output: github_document
+date: "2023-03-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 数据清理（coffee是清理掉NA,Taiwan和异常值的数据）
+
+```{r echo = TRUE, results='hide'}
+library(tidyverse)
+library(readxl)
+coffee.data <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
+coffee <- na.omit(coffee.data)
+coffee<- subset(coffee, country_of_origin != 'Taiwan')
+coffee
+```
+
+Qualityclass作为分类变量
+
+```{r pressure, echo=TRUE, results='hide'}
+coffee$Qualityclass <- as.integer(coffee$Qualityclass == "Good")
+coffee
+
+```
+
+清除异常值
+```{r echo = TRUE, results='hide'}
+quantiles_aroma <- quantile(coffee.data$aroma,probs=c(0.25,0.75),na.rm=FALSE)
+IQR_aroma <- IQR(coffee$aroma)
+Lower_aroma <- quantiles_aroma[1]-1.5*IQR_aroma
+Upper_aroma <- quantiles_aroma[2]+1.5*IQR_aroma
+coffee<- subset(coffee,coffee$aroma>Lower_aroma & coffee$aroma< Upper_aroma)
+
+quantiles_flavor <- quantile(coffee$flavor,probs=c(0.25,0.75),na.rm=FALSE)
+IQR_flavor <- IQR(coffee$flavor)
+Lower_flavor <- quantiles_flavor[1]-1.5*IQR_flavor
+Upper_flavor <- quantiles_flavor[2]+1.5*IQR_flavor
+coffee<- subset(coffee,coffee$flavor>Lower_flavor & coffee$flavor< Upper_flavor)
+
+quantiles_acidity <- quantile(coffee$acidity,probs=c(0.25,0.75),na.rm=FALSE)
+IQR_acidity <- IQR(coffee$acidity)
+Lower_acidity <- quantiles_acidity[1]-1.5*IQR_acidity
+Upper_acidity <- quantiles_acidity[2]+1.5*IQR_acidity
+coffee<- subset(coffee,coffee$acidity>Lower_acidity & coffee$acidity< Upper_acidity)
+coffee
+
+```
+存储数据清理后的文件（存储后的文件名为coffee_clean.csv）
+```{r}
+write.csv(coffee,file="/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv",row.names=FALSE)
+
+```
+
+## 标准化数据（coffee里储存的是标准化后的数据）
+```{r echo = TRUE, results='hide'}
+## 创建一个逻辑向量，用于确定数据框 coffee 中哪些列包含数值型数据。它使用函数sapply判断每个列的数据类型是否为数值型。
+numeric_cols <- sapply(coffee,is.numeric)
+## 将数据框 coffee 中只包含数值型数据的列提取出来，赋值给新的数据框 numeric_coffee
+numeric_coffee <- coffee[,numeric_cols]
+## 将 numeric_coffee 中的数值型数据进行标准化处理，得到新的数据框 scaled_coffee。标准化处理是为了将不同变量的数据范围转化为相同的尺度，方便进行比较。
+scaled_coffee <- as.data.frame(scale(numeric_coffee))
+## 将原数据框 coffee 中的 category_two_defects 列添加到 scaled_coffee 中。
+scaled_coffee$category_two_defects <- coffee$category_two_defects
+## 将标准化后的数据框 scaled_coffee 中的数值型数据赋值回原数据框 coffee 中对应的列，覆盖原来的数据。
+coffee[,numeric_cols] <- scaled_coffee
+coffee
+```
+
+## correlation（用的标准化前的data——coffee.clean）
+```{r echo = FALSE}
+coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
+cor(coffee.clean[,2:8])
+```
+绘制箱图
+```{r echo = FALSE}
+library(gridExtra)
+## 数值型变量转换为因子变量
+coffee.clean$Qualityclass <- factor(coffee.clean$Qualityclass)
+plot1 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = aroma, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Aroma") + 
+  theme(legend.position = "none")
+
+plot2 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = flavor, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Flavor") + 
+  theme(legend.position = "none")
+
+plot3 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = acidity, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Acidity") + 
+  theme(legend.position = "none")
+
+plot4 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = category_two_defects, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Category_two_defects") + 
+  theme(legend.position = "none")
+
+plot5 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = altitude_mean_meters, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Altitude_mean_meters") + 
+  ylim(0,2000)
+  theme(legend.position = "none")
+
+## 每一年里不同质检结果的数量
+plot6 <- ggplot(coffee.clean, aes(x=harvested, fill=as.factor(Qualityclass))) +
+  geom_bar(position="dodge", alpha=0.8, stat="count") +
+  scale_fill_manual(values=c("Orange", "Blue")) +
+  labs(x="Harvested", y="Count", fill="Qualityclass") +
+  ggtitle("Qualityclass count by Harvest")
+
+## 合并六个图表
+# 将 plot1 到 plot6 以 2 行 3 列的网格形式排列
+grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
+
+
+```
+
+## 建模
+```{r echo=FALSE}
+model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"),
+             data=coffee.clean)
+model2 <- glm(Qualityclass~aroma*flavor+acidity,family=binomial(link="logit"),
+             data=coffee.clean)
+model3 <- glm(Qualityclass~aroma+flavor*acidity,family=binomial(link="logit"),
+             data=coffee.clean)
+model4 <- glm(Qualityclass~aroma*acidity+flavor,family=binomial(link="logit"),
+             data=coffee.clean)
+model5 <- glm(Qualityclass~aroma*flavor+aroma*acidity,family=binomial(link="logit"),
+             data=coffee.clean)
+model6 <- glm(Qualityclass~aroma*flavor+acidity*flavor,family=binomial(link="logit"),
+             data=coffee.clean)
+model7 <- glm(Qualityclass~aroma*acidity+flavor*acidity,family=binomial(link="logit"),
+             data=coffee.clean)
+model8 <- glm(Qualityclass~aroma*flavor+acidity*flavor+acidity*aroma,family=binomial(link="logit"),
+             data=coffee.clean)
+model9 <- glm(Qualityclass~aroma*flavor*acidity,family=binomial(link="logit"),
+             data=coffee.clean)
+
+anova(model1,model2,model3,model4,model5,model6,model7,
+      model8,model9)
+summary(model9)
+AIC(model1)
+AIC(model2)
+AIC(model3)
+AIC(model4)
+AIC(model5)
+AIC(model6)
+AIC(model7)
+AIC(model8)
+AIC(model9)
+
+
+```
+
