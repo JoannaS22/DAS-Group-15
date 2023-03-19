@@ -14,8 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
 ######################### 老师发的是dataset15.csv吗
-coffee <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
-coffee <- na.omit(coffee.data)
+coffee <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/dataset15.csv")
+coffee <- na.omit(coffee)
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 coffee
 ```
