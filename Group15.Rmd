@@ -7,10 +7,6 @@ output:
     number_sections: yes
   html_document:
     df_print: paged
-header-includes:
-  - \usepackage[T1]{fontenc}
-  - \usepackage[utf8]{inputenc}
-  - \usepackage{amsmath}
 fig_caption: yes
 ---
 
@@ -180,7 +176,7 @@ coffee[,numeric_cols] <- scaled_coffee
 ```
 
 # Modeling
-
+With Qualityclass as the response variable and aroma, flavor, and acidity as independent variables, 15 different generalized linear models were fitted, and Deviance, and AIC of each model were calculated.
 ```{r echo=TRUE, include=FALSE}
 model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"), data=coffee)
 model2 <- glm(Qualityclass~aroma,family=binomial(link="logit"),
@@ -230,16 +226,15 @@ AIC(model12)
 AIC(model13)
 AIC(model14)
 AIC(model15)
-
-
 ```
 
 
-```{r echo=TRUE}
-Modelname <- c("model1","model2","model3","model4",
-                         "model5","model6","model7","model8",
-                         "model9","model10","model11","model12",
-                         "model13","model14","model15")
+```{r echo=FALSE}
+Modelname <- c("aroma+flavor+acidity","aroma","flavor","acidity",
+              "aroma+flavor","flavor+acidity","aroma+acidity","aroma*flavor+acidity",
+              "aroma+flavor*acidity","aroma*acidity+flavor",
+              "aroma*flavor+aroma*acidity","aroma*flavor+acidity*flavor",
+              "aroma*acidity+flavor*acidity","aroma*flavor+acidity*flavor+acidity*aroma","aroma*flavor*acidity")
 AIC <- c(model1$aic,model2$aic,model3$aic,model4$aic,
          model5$aic,model6$aic,model7$aic,model8$aic,
          model9$aic,model10$aic,model11$aic,model12$aic,
@@ -253,7 +248,7 @@ table_values <- data.frame(Modelname, Deviance, AIC)
 table_values <- as.data.frame(table_values)
 table_values %>%
   transmute(Modelname=Modelname, Deviance=Deviance, AIC=AIC) %>%
-  kable(caption = '\\label{tab:summary} AIC of each model',
+  kable(caption = '\\label{tab:summary} Deviance and AIC of each model',
 booktabs = TRUE, linesep = "", digits = 2) %>%
   kable_styling(font_size = 16, latex_options = "hold_position")
 
