@@ -60,7 +60,11 @@ A subset with reasonable data distribution is selected from *coffee.data's* data
 quantiles_aroma <- quantile(coffee.data$aroma,probs=c(0.25,0.75),na.rm=FALSE)
 ```
 
-## Clearing outliers
+## Cleaning outliers
+The IQR method is used to identify outliers in coffee. 
+The IQR (interquartile range) is a measure of the spread of the middle 50% of the numeric variables in coffee, calculated as the difference between the third quartile (Q3) and the first quartile (Q1) of the dataset.
+These variables in coffee have been cleaned: aroma, flavor, and acidity.
+
 ```{r echo=TRUE, results='hide'}
 quantiles_aroma <- quantile(coffee$aroma,probs=c(0.25,0.75),na.rm=FALSE)
 IQR_aroma <- IQR(coffee$aroma)
