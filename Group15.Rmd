@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
 ######################### 老师发的是dataset15.csv吗
-coffee <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/dataset15.csv")
+#coffee <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/dataset15.csv")
 coffee <- na.omit(coffee)
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 coffee
@@ -29,8 +29,8 @@ coffee
 ```
 
 清除异常值
-```{r echo = TRUE, results='hide'}
-quantiles_aroma <- quantile(coffee.data$aroma,probs=c(0.25,0.75),na.rm=FALSE)
+```{r echo = TRUE, eval=TRUE, warning=FALSE, message = FALSE}
+quantiles_aroma <- quantile(coffee$aroma,probs=c(0.25,0.75),na.rm=FALSE)
 IQR_aroma <- IQR(coffee$aroma)
 Lower_aroma <- quantiles_aroma[1]-1.5*IQR_aroma
 Upper_aroma <- quantiles_aroma[2]+1.5*IQR_aroma
@@ -59,8 +59,8 @@ write.csv(coffee,file="/Users/sunyazhu/Desktop/University of Glasgow/R program/A
 ##########################################
 ## correlation（用的标准化前的data——coffee.clean）
 ```{r echo = FALSE}
-coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
-cor(coffee.clean[,2:8])
+#coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
+#cor(coffee.clean[,2:8])
 ```
 ##########################################
 绘制箱图
@@ -108,10 +108,10 @@ plot6 <- ggplot(coffee, aes(x=harvested, fill=as.factor(Qualityclass))) +
 ## 合并六个图表
 # 将 plot1 到 plot6 以 2 行 3 列的网格形式排列
 grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
-
+```
 
 ## 标准化数据（coffee里储存的是标准化后的数据）
-```{r echo = TRUE, results='hide'}
+```{r echo = TRUE}
 ## 创建一个逻辑向量，用于确定数据框 coffee 中哪些列包含数值型数据。它使用函数sapply判断每个列的数据类型是否为数值型。
 numeric_cols <- sapply(coffee,is.numeric)
 ## 将数据框 coffee 中只包含数值型数据的列提取出来，赋值给新的数据框 numeric_coffee
@@ -125,31 +125,35 @@ coffee[,numeric_cols] <- scaled_coffee
 coffee
 ```
 
-```
 
 ## 建模
-```{r echo=FALSE}
+```{r echo=TRUE}
 model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model2 <- glm(Qualityclass~aroma*flavor+acidity,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model3 <- glm(Qualityclass~aroma+flavor*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model4 <- glm(Qualityclass~aroma*acidity+flavor,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model5 <- glm(Qualityclass~aroma*flavor+aroma*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model6 <- glm(Qualityclass~aroma*flavor+acidity*flavor,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model7 <- glm(Qualityclass~aroma*acidity+flavor*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model8 <- glm(Qualityclass~aroma*flavor+acidity*flavor+acidity*aroma,family=binomial(link="logit"),
-             data=coffee.clean)
+              data=coffee)
 model9 <- glm(Qualityclass~aroma*flavor*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
-
+              data=coffee)
+model10 <- glm(Qualityclass~aroma+flavor,family=binomial(link="logit"),
+              data=coffee)
+model11 <- glm(Qualityclass~flavor+acidity,family=binomial(link="logit"),
+              data=coffee)
+model12 <- glm(Qualityclass~aroma+acidity,family=binomial(link="logit"),
+              data=coffee)
 anova(model1,model2,model3,model4,model5,model6,model7,
-      model8,model9)
+      model8,model9,model10,model11,model12)
 summary(model9)
 AIC(model1)
 AIC(model2)
@@ -160,23 +164,25 @@ AIC(model6)
 AIC(model7)
 AIC(model8)
 AIC(model9)
-
+AIC(model10)
+AIC(model11)
+AIC(model12)
 ```
 
 ```{r echo=FALSE}
 library(ROCR)
 
-coffee.pr <- predict(model9, type="response")
+coffee.pr <- predict(model1, type="response")
 score <- prediction(coffee.pr,coffee$Qualityclass)
 perf <- performance(score,"tpr","fpr")
 auc <- performance(score,"auc")
 perfd <- data.frame(x= perf@x.values[1][[1]], y=perf@y.values[1][[1]])
-p9<- ggplot(perfd, aes(x= x, y=y)) + geom_line() +
+p1 <- ggplot(perfd, aes(x= x, y=y)) + geom_line() +
   xlab("False positive rate") + ylab("True positive rate") +
   ggtitle(paste("Area under the curve:", round(auc@y.values[[1]], 3)))
-p9
+p1
 ```
 
 ```{r echo=TRUE}
-asdadsadasdasd
+vif(model)
 ```
