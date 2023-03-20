@@ -261,6 +261,8 @@ vif(model13)
 vif(model14)
 vif(model15)
 ```
+Receiver Operating Characteristic (ROC) curve shows the performance of a model1. 
+The area under the ROC curve (AUC) is 0.94, which indicates a good classification performance.
 
 ```{r echo=TRUE}
 coffee.pr <- predict(model1, type="response")
