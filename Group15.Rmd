@@ -167,7 +167,6 @@ coffee
 # Modeling
 
 ```{r echo=TRUE, include=FALSE}
-coffee$Qualityclass <- as.factor(coffee$Qualityclass)
 model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"), data=coffee)
 model2 <- glm(Qualityclass~aroma,family=binomial(link="logit"),
               data=coffee)
