@@ -17,7 +17,7 @@ library(tidyverse)
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
-    ## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors
+    ## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors
 
 ``` r
 library(readxl)
@@ -187,3 +187,6 @@ coffee
     ## [1] 569.0716
 
     ## [1] 570.9826
+
+# test
+dsadasdasd
