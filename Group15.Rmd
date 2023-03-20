@@ -1,10 +1,13 @@
 ---
-title: "DAS-Group-15"
-output: github_document
-date: "2023-03-15"
-editor_options: 
-  markdown: 
-    wrap: 72
+title: "The Impact of Coffee Features on Quality Classification"
+author: "Group_15"
+output:
+  pdf_document:
+    latex_engine: pdflatex
+    number_sections: yes
+  html_document:
+    df_print: paged
+fig_caption: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -20,6 +23,7 @@ library(skimr)
 library(kableExtra)
 library(car)
 library(ROCR)
+library(GGally)
 ```
 
 # Data Introduction
@@ -39,8 +43,8 @@ This data come from the Coffee Quality Database (CQD). The database contains inf
 First clear the null lines in the data, and then delete all lines with the line name *Taiwan* since *Taiwan* is not a country.
 
 ```{r echo = TRUE, results='hide'}
-#coffee.data <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
-coffee.data <- read.csv("C:/Users/hello/Downloads/dataset15.csv")
+#coffee.data <- read.csv("dataset15.csv")
+coffee.data <- read.csv("dataset15.csv")
 coffee <- na.omit(coffee.data)
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 coffee
@@ -60,10 +64,21 @@ A subset with reasonable data distribution is selected from *coffee.data's* data
 quantiles_aroma <- quantile(coffee.data$aroma,probs=c(0.25,0.75),na.rm=FALSE)
 ```
 
+## Correlation Test
+Correlation test for eight variables:
+```{r echo=TRUE, results='hide'}
+coffee_nocountry <- coffee[,-which(names(coffee) == "country_of_origin")]
+ggpairs(coffee_nocountry) +
+  theme(plot.background = element_rect(
+    fill = "transparent",
+    colour = NA,
+    size = 1))
+```
+
 ## Cleaning outliers
 The IQR method is used to identify outliers in coffee. 
 The IQR (interquartile range) is a measure of the spread of the middle 50% of the numeric variables in coffee, calculated as the difference between the third quartile (Q3) and the first quartile (Q1) of the dataset.
-These variables in coffee have been cleaned: aroma, flavor, and acidity.
+According to the results of the correlation test, we decided to clean up the outliers only for the three variables aroma, flavor, and acidity.
 
 ```{r echo=TRUE, results='hide'}
 quantiles_aroma <- quantile(coffee$aroma,probs=c(0.25,0.75),na.rm=FALSE)
@@ -90,14 +105,13 @@ coffee
 ## Store the cleared data
 
 ```{r}
-#write.csv(coffee,file="/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv",row.names=FALSE)
-
+write.csv(coffee,file="coffee_clean.csv",row.names=FALSE)
 ```
 
 # Correlation test between variables
 
 ```{r echo = FALSE}
-#coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
+coffee.clean <- read.csv("coffee_clean.csv")
 cor(coffee[,2:7])
 ```
 
@@ -107,7 +121,6 @@ cor(coffee[,2:7])
 
 ```{r echo = FALSE}
 library(gridExtra)
-## 数值型变量转换为因子变量
 coffee$Qualityclass <- factor(coffee$Qualityclass)
 plot1 <- ggplot(data = coffee,aes(x = Qualityclass, y = aroma, fill = Qualityclass)) +
   geom_boxplot() +
