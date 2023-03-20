@@ -176,3 +176,7 @@ p9<- ggplot(perfd, aes(x= x, y=y)) + geom_line() +
   ggtitle(paste("Area under the curve:", round(auc@y.values[[1]], 3)))
 p9
 ```
+
+```{r echo=TRUE}
+asdadsadasdasd
+```
