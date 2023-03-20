@@ -14,7 +14,7 @@ fig_caption: yes
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r eval=TRUE, include=FALSE}
+```{r eval=TRUE, warning=FALSE, message=FALSE,include=FALSE}
 library(tidyverse)
 library(readxl)
 library(gridExtra)
@@ -42,7 +42,7 @@ This data come from the Coffee Quality Database (CQD). The database contains inf
 
 First clear the null lines in the data, and then delete all lines with the line name *Taiwan* since *Taiwan* is not a country.
 
-```{r echo = TRUE, results='hide'}
+```{r echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 #coffee.data <- read.csv("dataset15.csv")
 coffee.data <- read.csv("dataset15.csv")
 coffee <- na.omit(coffee.data)
@@ -51,19 +51,19 @@ coffee<- subset(coffee, country_of_origin != 'Taiwan')
 
 Using Qualityclass as a classification variable, assign Qualityclass 0 and 1 in terms of it's original value poor and good.
 
-```{r pressure, echo=TRUE, results='hide'}
+```{r pressure, echo=TRUE, warning=FALSE, message=FALSE,results='hide'}
 coffee$Qualityclass <- as.integer(coffee$Qualityclass == "Good")
 ```
 
 A subset with reasonable data distribution is selected from *coffee.data's* data set and stored in a new data set, *coffee*.
 
-```{r echo = TRUE, results='hide'}
+```{r echo = TRUE, warning=FALSE, message=FALSE,results='hide'}
 quantiles_aroma <- quantile(coffee.data$aroma,probs=c(0.25,0.75),na.rm=FALSE)
 ```
 
 ## Correlation Test
 Correlation test for eight variables:
-```{r echo=TRUE, results='hide'}
+```{r echo=TRUE, warning=FALSE, message=FALSE,results='hide'}
 coffee_nocountry <- coffee[,-which(names(coffee) == "country_of_origin")]
 ggpairs(coffee_nocountry) +
   theme(plot.background = element_rect(
@@ -71,13 +71,14 @@ ggpairs(coffee_nocountry) +
     colour = NA,
     size = 1))
 ```
+From the results of the correlation test, only aroma, flavor, and acidity are highly correlated with Qualityclass, while the correlation between category_two_defects, altitiude_mean_meters, harvested, and Qualityclass is very low.
 
 ## Cleaning outliers
 The IQR method is used to identify outliers in coffee. 
 The IQR (interquartile range) is a measure of the spread of the middle 50% of the numeric variables in coffee, calculated as the difference between the third quartile (Q3) and the first quartile (Q1) of the dataset.
 According to the results of the correlation test, we decided to clean up the outliers only for the three variables aroma, flavor, and acidity.
 
-```{r echo=TRUE, results='hide'}
+```{r echo=TRUE, warning=FALSE, message=FALSE,results='hide'}
 quantiles_aroma <- quantile(coffee$aroma,probs=c(0.25,0.75),na.rm=FALSE)
 IQR_aroma <- IQR(coffee$aroma)
 Lower_aroma <- quantiles_aroma[1]-1.5*IQR_aroma
@@ -99,13 +100,13 @@ coffee<- subset(coffee,coffee$acidity>Lower_acidity & coffee$acidity< Upper_acid
 
 ## Store the cleared data
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 write.csv(coffee,file="coffee_clean.csv",row.names=FALSE)
 ```
 
 # Correlation test between variables
 
-```{r echo = FALSE}
+```{r echo = TRUE, warning=FALSE, message=FALSE}
 coffee.clean <- read.csv("coffee_clean.csv")
 cor(coffee[,2:7])
 ```
@@ -114,7 +115,7 @@ cor(coffee[,2:7])
 # Data visualization
 
 
-```{r echo = FALSE}
+```{r echo = TRUE, warning=FALSE, message=FALSE}
 library(gridExtra)
 coffee$Qualityclass <- factor(coffee$Qualityclass)
 plot1 <- ggplot(data = coffee,aes(x = Qualityclass, y = aroma, fill = Qualityclass)) +
@@ -162,7 +163,7 @@ grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
 
 # Standardized data
 
-```{r echo = TRUE, results='hide'}
+```{r echo = TRUE, warning=FALSE, message=FALSE,results='hide'}
 ## Creates a logical vector that determines which columns in the data box coffee contain numeric data. It uses the function sapply to determine whether the data type of each column is numeric.
 numeric_cols <- sapply(coffee,is.numeric)
 ## The columns containing only numerical data in data box coffee are extracted and assigned to new data box numeric_coffee
@@ -177,7 +178,7 @@ coffee[,numeric_cols] <- scaled_coffee
 
 # Modeling
 With Qualityclass as the response variable and aroma, flavor, and acidity as independent variables, 15 different generalized linear models were fitted, and Deviance, and AIC of each model were calculated.
-```{r echo=TRUE, include=FALSE}
+```{r echo=TRUE, warning=FALSE, message=FALSE,include=FALSE}
 model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"), data=coffee)
 model2 <- glm(Qualityclass~aroma,family=binomial(link="logit"),
               data=coffee)
@@ -229,7 +230,7 @@ AIC(model15)
 ```
 
 
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE, message=FALSE}
 Modelname <- c("aroma+flavor+acidity","aroma","flavor","acidity",
               "aroma+flavor","flavor+acidity","aroma+acidity","aroma*flavor+acidity",
               "aroma+flavor*acidity","aroma*acidity+flavor",
@@ -256,7 +257,7 @@ booktabs = TRUE, linesep = "", digits = 2) %>%
 
 # Multicollinearity test of model
 
-```{r echo=TRUE}
+```{r echo=TRUE,warning=FALSE, message=FALSE}
 vif(model1)
 vif(model5)
 vif(model6)
@@ -273,7 +274,7 @@ vif(model15)
 Receiver Operating Characteristic (ROC) curve shows the performance of a model1. 
 The area under the ROC curve (AUC) is 0.94, which indicates a good classification performance.
 
-```{r echo=TRUE}
+```{r echo=TRUE, warning=FALSE, message=FALSE}
 coffee.pr <- predict(model1, type="response")
 score <- prediction(coffee.pr,coffee$Qualityclass)
 perf <- performance(score,"tpr","fpr")
