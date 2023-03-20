@@ -9,6 +9,7 @@ library(gridExtra)
 library(ggplot2)
 ```
 
+<<<<<<< HEAD
 # Data Introduction
 
 This data come from the Coffee Quality Database (CQD). The database
@@ -29,6 +30,18 @@ score for the batch (Good - ≥ 82.5, Poor - \<82.5).
 
 First clear the null lines in the data, and then delete all lines with
 the line name *Taiwan* since *Taiwan* is not a country.
+=======
+    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+    ## ✔ dplyr     1.1.0     ✔ readr     2.1.4
+    ## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+    ## ✔ ggplot2   3.4.1     ✔ tibble    3.1.8
+    ## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+    ## ✔ purrr     1.0.1     
+    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ✖ dplyr::filter() masks stats::filter()
+    ## ✖ dplyr::lag()    masks stats::lag()
+    ## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
 
 ``` r
 coffee.data <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
@@ -235,3 +248,8 @@ grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
     ## [1] 569.0716
 
     ## [1] 570.9826
+
+# test
+dsadasdasd
+
+# lalala

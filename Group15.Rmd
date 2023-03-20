@@ -21,6 +21,7 @@ library(ggplot2)
 ```{r include=FALSE}
 library(tidyverse)
 library(readxl)
+<<<<<<< HEAD
 library(gridExtra)
 library(ggplot2)
 ```
@@ -49,6 +50,11 @@ the line name *Taiwan* since *Taiwan* is not a country.
 ```{r echo = TRUE, results='hide'}
 coffee.data <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
 coffee <- na.omit(coffee.data)
+=======
+######################### 老师发的是dataset15.csv吗
+#coffee <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/dataset15.csv")
+coffee <- na.omit(coffee)
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 coffee
 ```
@@ -62,11 +68,17 @@ coffee
 
 ```
 
+<<<<<<< HEAD
 A subset with reasonable data distribution is selected from
 *coffee.data's* data set and stored in a new data set, *coffee*.
 
 ```{r echo = TRUE, results='hide'}
 quantiles_aroma <- quantile(coffee.data$aroma,probs=c(0.25,0.75),na.rm=FALSE)
+=======
+清除异常值
+```{r echo = TRUE, eval=TRUE, warning=FALSE, message = FALSE}
+quantiles_aroma <- quantile(coffee$aroma,probs=c(0.25,0.75),na.rm=FALSE)
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
 IQR_aroma <- IQR(coffee$aroma)
 Lower_aroma <- quantiles_aroma[1]-1.5*IQR_aroma
 Upper_aroma <- quantiles_aroma[2]+1.5*IQR_aroma
@@ -94,6 +106,7 @@ write.csv(coffee,file="/Users/sunyazhu/Desktop/University of Glasgow/R program/A
 
 ```
 
+<<<<<<< HEAD
 # Standardized data
 
 ```{r echo = TRUE, results='hide'}
@@ -112,10 +125,15 @@ coffee
 
 # Correlation test between variables
 
+=======
+##########################################
+## correlation（用的标准化前的data——coffee.clean）
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
 ```{r echo = FALSE}
-coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
-cor(coffee.clean[,2:8])
+#coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
+#cor(coffee.clean[,2:8])
 ```
+<<<<<<< HEAD
 
 # Data visualization
 
@@ -123,33 +141,51 @@ cor(coffee.clean[,2:8])
 ## Numeric variables are converted to factor variables
 coffee.clean$Qualityclass <- factor(coffee.clean$Qualityclass)
 plot1 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = aroma, fill = Qualityclass)) +
+=======
+##########################################
+绘制箱图
+```{r echo = FALSE}
+library(gridExtra)
+## 数值型变量转换为因子变量
+coffee$Qualityclass <- factor(coffee$Qualityclass)
+plot1 <- ggplot(data = coffee,aes(x = Qualityclass, y = aroma, fill = Qualityclass)) +
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
   geom_boxplot() +
   labs(x = "Qualityclass", y = "Aroma") + 
+  ylim(7,8) + 
   theme(legend.position = "none")
 
-plot2 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = flavor, fill = Qualityclass)) +
+plot2 <- ggplot(data = coffee,aes(x = Qualityclass, y = flavor, fill = Qualityclass)) +
   geom_boxplot() +
   labs(x = "Qualityclass", y = "Flavor") + 
+  ylim(7,8) + 
   theme(legend.position = "none")
 
-plot3 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = acidity, fill = Qualityclass)) +
+plot3 <- ggplot(data = coffee,aes(x = Qualityclass, y = acidity, fill = Qualityclass)) +
   geom_boxplot() +
   labs(x = "Qualityclass", y = "Acidity") + 
+  ylim(7,8) + 
   theme(legend.position = "none")
 
-plot4 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = category_two_defects, fill = Qualityclass)) +
+plot4 <- ggplot(data = coffee,aes(x = Qualityclass, y = category_two_defects, fill = Qualityclass)) +
   geom_boxplot() +
   labs(x = "Qualityclass", y = "Category_two_defects") + 
+  ylim(-1,10) + 
   theme(legend.position = "none")
 
-plot5 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = altitude_mean_meters, fill = Qualityclass)) +
+plot5 <- ggplot(data = coffee,aes(x = Qualityclass, y = altitude_mean_meters, fill = Qualityclass)) +
   geom_boxplot() +
   labs(x = "Qualityclass", y = "Altitude_mean_meters") + 
   ylim(0,2000)
   theme(legend.position = "none")
 
+<<<<<<< HEAD
 ## The number of different quality inspection results in each year
 plot6 <- ggplot(coffee.clean, aes(x=harvested, fill=as.factor(Qualityclass))) +
+=======
+## 每一年里不同质检结果的数量
+plot6 <- ggplot(coffee, aes(x=harvested, fill=as.factor(Qualityclass))) +
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
   geom_bar(position="dodge", alpha=0.8, stat="count") +
   scale_fill_manual(values=c("Orange", "Blue")) +
   labs(x="Harvested", y="Count", fill="Qualityclass") +
@@ -158,34 +194,58 @@ plot6 <- ggplot(coffee.clean, aes(x=harvested, fill=as.factor(Qualityclass))) +
 ## Merge six charts
 ## Arrange plot1 to plot6 in a grid of 2 rows and 3 columns
 grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
-
-
 ```
 
+## 标准化数据（coffee里储存的是标准化后的数据）
+```{r echo = TRUE}
+## 创建一个逻辑向量，用于确定数据框 coffee 中哪些列包含数值型数据。它使用函数sapply判断每个列的数据类型是否为数值型。
+numeric_cols <- sapply(coffee,is.numeric)
+## 将数据框 coffee 中只包含数值型数据的列提取出来，赋值给新的数据框 numeric_coffee
+numeric_coffee <- coffee[,numeric_cols]
+## 将 numeric_coffee 中的数值型数据进行标准化处理，得到新的数据框 scaled_coffee。标准化处理是为了将不同变量的数据范围转化为相同的尺度，方便进行比较。
+scaled_coffee <- as.data.frame(scale(numeric_coffee))
+## 将原数据框 coffee 中的 category_two_defects 列添加到 scaled_coffee 中。
+scaled_coffee$category_two_defects <- coffee$category_two_defects
+## 将标准化后的数据框 scaled_coffee 中的数值型数据赋值回原数据框 coffee 中对应的列，覆盖原来的数据。
+coffee[,numeric_cols] <- scaled_coffee
+coffee
+```
+
+<<<<<<< HEAD
 # Modeling
 
 ```{r echo=FALSE}
-model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"),
-             data=coffee.clean)
-model2 <- glm(Qualityclass~aroma*flavor+acidity,family=binomial(link="logit"),
-             data=coffee.clean)
-model3 <- glm(Qualityclass~aroma+flavor*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
-model4 <- glm(Qualityclass~aroma*acidity+flavor,family=binomial(link="logit"),
-             data=coffee.clean)
-model5 <- glm(Qualityclass~aroma*flavor+aroma*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
-model6 <- glm(Qualityclass~aroma*flavor+acidity*flavor,family=binomial(link="logit"),
-             data=coffee.clean)
-model7 <- glm(Qualityclass~aroma*acidity+flavor*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
-model8 <- glm(Qualityclass~aroma*flavor+acidity*flavor+acidity*aroma,family=binomial(link="logit"),
-             data=coffee.clean)
-model9 <- glm(Qualityclass~aroma*flavor*acidity,family=binomial(link="logit"),
-             data=coffee.clean)
+=======
 
+## 建模
+```{r echo=TRUE}
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
+model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"),
+              data=coffee)
+model2 <- glm(Qualityclass~aroma*flavor+acidity,family=binomial(link="logit"),
+              data=coffee)
+model3 <- glm(Qualityclass~aroma+flavor*acidity,family=binomial(link="logit"),
+              data=coffee)
+model4 <- glm(Qualityclass~aroma*acidity+flavor,family=binomial(link="logit"),
+              data=coffee)
+model5 <- glm(Qualityclass~aroma*flavor+aroma*acidity,family=binomial(link="logit"),
+              data=coffee)
+model6 <- glm(Qualityclass~aroma*flavor+acidity*flavor,family=binomial(link="logit"),
+              data=coffee)
+model7 <- glm(Qualityclass~aroma*acidity+flavor*acidity,family=binomial(link="logit"),
+              data=coffee)
+model8 <- glm(Qualityclass~aroma*flavor+acidity*flavor+acidity*aroma,family=binomial(link="logit"),
+              data=coffee)
+model9 <- glm(Qualityclass~aroma*flavor*acidity,family=binomial(link="logit"),
+              data=coffee)
+model10 <- glm(Qualityclass~aroma+flavor,family=binomial(link="logit"),
+              data=coffee)
+model11 <- glm(Qualityclass~flavor+acidity,family=binomial(link="logit"),
+              data=coffee)
+model12 <- glm(Qualityclass~aroma+acidity,family=binomial(link="logit"),
+              data=coffee)
 anova(model1,model2,model3,model4,model5,model6,model7,
-      model8,model9)
+      model8,model9,model10,model11,model12)
 summary(model9)
 AIC(model1)
 AIC(model2)
@@ -196,6 +256,28 @@ AIC(model6)
 AIC(model7)
 AIC(model8)
 AIC(model9)
-
-
+AIC(model10)
+AIC(model11)
+AIC(model12)
 ```
+
+```{r echo=FALSE}
+library(ROCR)
+
+coffee.pr <- predict(model1, type="response")
+score <- prediction(coffee.pr,coffee$Qualityclass)
+perf <- performance(score,"tpr","fpr")
+auc <- performance(score,"auc")
+perfd <- data.frame(x= perf@x.values[1][[1]], y=perf@y.values[1][[1]])
+p1 <- ggplot(perfd, aes(x= x, y=y)) + geom_line() +
+  xlab("False positive rate") + ylab("True positive rate") +
+  ggtitle(paste("Area under the curve:", round(auc@y.values[[1]], 3)))
+p1
+```
+<<<<<<< HEAD
+=======
+
+```{r echo=TRUE}
+vif(model)
+```
+>>>>>>> 60034cc38bd34d98f2c386aeafe4e9aa75ac47e6
