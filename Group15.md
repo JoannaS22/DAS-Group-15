@@ -2,39 +2,51 @@ Groupwork2
 ================
 2023-03-15
 
-## 数据清理（coffee是清理掉NA,Taiwan和异常值的数据）
-
 ``` r
 library(tidyverse)
+library(readxl)
+library(gridExtra)
+library(ggplot2)
 ```
 
-    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.1.0     ✔ readr     2.1.4
-    ## ✔ forcats   1.0.0     ✔ stringr   1.5.0
-    ## ✔ ggplot2   3.4.1     ✔ tibble    3.1.8
-    ## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
-    ## ✔ purrr     1.0.1     
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-    ## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors
+# Data Introduction
+
+This data come from the Coffee Quality Database (CQD). The database
+contains information from the CoffeevQuality Institute which is a
+non-profit organisation working internationally to improve the quality
+of coffee and thelives of the people who produce it. Each of the 5
+datasets contain information on features of coffee and its production,
+includinan overall score of quality. • *country_of_origin* – Country
+where the coffee bean originates from. • *aroma* – Aroma grade (ranging
+from 0-10) • *flavor* – Flavour grade (ranging from 0-10) • *acidity* –
+Acidity grade (ranging from 0-10) • *category*\_two_defects – Count of
+category 2 type defects in the batch of coffee beans tested. •
+*altitiude_mean_meters* – Mean altitude of the growers farm (in metres)
+• *harvested* – Year the batch was harvested • *Qualityclass* – Quality
+score for the batch (Good - ≥ 82.5, Poor - \<82.5).
+
+# Data Cleaning
+
+First clear the null lines in the data, and then delete all lines with
+the line name *Taiwan* since *Taiwan* is not a country.
 
 ``` r
-library(readxl)
 coffee.data <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
 coffee <- na.omit(coffee.data)
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 coffee
 ```
 
-Qualityclass作为分类变量
+Using Qualityclass as a classification variable, assign Qualityclass 0
+and 1 in terms of it’s original value poor and good.
 
 ``` r
 coffee$Qualityclass <- as.integer(coffee$Qualityclass == "Good")
 coffee
 ```
 
-清除异常值
+A subset with reasonable data distribution is selected from
+*coffee.data’s* data set and stored in a new data set, *coffee*.
 
 ``` r
 quantiles_aroma <- quantile(coffee.data$aroma,probs=c(0.25,0.75),na.rm=FALSE)
@@ -57,29 +69,29 @@ coffee<- subset(coffee,coffee$acidity>Lower_acidity & coffee$acidity< Upper_acid
 coffee
 ```
 
-存储数据清理后的文件（存储后的文件名为coffee_clean.csv）
+Store the cleared data
 
 ``` r
 write.csv(coffee,file="/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv",row.names=FALSE)
 ```
 
-## 标准化数据（coffee里储存的是标准化后的数据）
+# Standardized data
 
 ``` r
-## 创建一个逻辑向量，用于确定数据框 coffee 中哪些列包含数值型数据。它使用函数sapply判断每个列的数据类型是否为数值型。
+## Creates a logical vector that determines which columns in the data box coffee contain numeric data. It uses the function sapply to determine whether the data type of each column is numeric.
 numeric_cols <- sapply(coffee,is.numeric)
-## 将数据框 coffee 中只包含数值型数据的列提取出来，赋值给新的数据框 numeric_coffee
+## The columns containing only numerical data in data box coffee are extracted and assigned to new data box numeric_coffee
 numeric_coffee <- coffee[,numeric_cols]
-## 将 numeric_coffee 中的数值型数据进行标准化处理，得到新的数据框 scaled_coffee。标准化处理是为了将不同变量的数据范围转化为相同的尺度，方便进行比较。
+## A new data box scaled_coffee is obtained by standardizing numerical data in numeric_coffee. The standardization process is to transform the data range of different variables into the same scale for easy comparison.
 scaled_coffee <- as.data.frame(scale(numeric_coffee))
-## 将原数据框 coffee 中的 category_two_defects 列添加到 scaled_coffee 中。
+## Add the category_two_defects column from the original data box coffee to scaled_coffee.
 scaled_coffee$category_two_defects <- coffee$category_two_defects
-## 将标准化后的数据框 scaled_coffee 中的数值型数据赋值回原数据框 coffee 中对应的列，覆盖原来的数据。
+## Assign the numerical data in the standardized data frame scaled_coffee back to the corresponding column in the original data frame coffee, and overwrite the original data.
 coffee[,numeric_cols] <- scaled_coffee
 coffee
 ```
 
-## correlation（用的标准化前的data——coffee.clean）
+# Correlation test between variables
 
     ##                            aroma      flavor      acidity category_two_defects
     ## aroma                 1.00000000  0.67160282  0.538079249          -0.19698110
@@ -98,14 +110,37 @@ coffee
     ## harvested                     0.074029856  1.00000000   0.03792407
     ## Qualityclass                 -0.050751344  0.03792407   1.00000000
 
-绘制箱图
+# Data visualization
 
-    ## 
-    ## 载入程辑包：'gridExtra'
+``` r
+## Numeric variables are converted to factor variables
+coffee.clean$Qualityclass <- factor(coffee.clean$Qualityclass)
+plot1 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = aroma, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Aroma") + 
+  theme(legend.position = "none")
 
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     combine
+plot2 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = flavor, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Flavor") + 
+  theme(legend.position = "none")
+
+plot3 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = acidity, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Acidity") + 
+  theme(legend.position = "none")
+
+plot4 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = category_two_defects, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Category_two_defects") + 
+  theme(legend.position = "none")
+
+plot5 <- ggplot(data = coffee.clean,aes(x = Qualityclass, y = altitude_mean_meters, fill = Qualityclass)) +
+  geom_boxplot() +
+  labs(x = "Qualityclass", y = "Altitude_mean_meters") + 
+  ylim(0,2000)
+  theme(legend.position = "none")
+```
 
     ## List of 1
     ##  $ legend.position: chr "none"
@@ -113,11 +148,24 @@ coffee
     ##  - attr(*, "complete")= logi FALSE
     ##  - attr(*, "validate")= logi TRUE
 
+``` r
+## The number of different quality inspection results in each year
+plot6 <- ggplot(coffee.clean, aes(x=harvested, fill=as.factor(Qualityclass))) +
+  geom_bar(position="dodge", alpha=0.8, stat="count") +
+  scale_fill_manual(values=c("Orange", "Blue")) +
+  labs(x="Harvested", y="Count", fill="Qualityclass") +
+  ggtitle("Qualityclass count by Harvest")
+
+## Merge six charts
+## Arrange plot1 to plot6 in a grid of 2 rows and 3 columns
+grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
+```
+
     ## Warning: Removed 24 rows containing non-finite values (`stat_boxplot()`).
 
-![](Group15_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](Group15_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
-## 建模
+# Modeling
 
     ## Analysis of Deviance Table
     ## 
