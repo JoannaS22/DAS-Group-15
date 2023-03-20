@@ -11,18 +11,15 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE, include=FALSE}
 library(tidyverse)
 library(readxl)
 library(gridExtra)
 library(ggplot2)
-```
-
-```{r include=FALSE}
-library(tidyverse)
-library(readxl)
-library(gridExtra)
-library(ggplot2)
+library(skimr)
+library(kableExtra)
+library(car)
+library(ROCR)
 ```
 
 # Data Introduction
@@ -42,7 +39,8 @@ This data come from the Coffee Quality Database (CQD). The database contains inf
 First clear the null lines in the data, and then delete all lines with the line name *Taiwan* since *Taiwan* is not a country.
 
 ```{r echo = TRUE, results='hide'}
-coffee.data <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
+#coffee.data <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee.csv")
+coffee.data <- read.csv("C:/Users/hello/Downloads/dataset15.csv")
 coffee <- na.omit(coffee.data)
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 coffee
@@ -88,15 +86,15 @@ coffee
 ## Store the cleared data
 
 ```{r}
-write.csv(coffee,file="/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv",row.names=FALSE)
+#write.csv(coffee,file="/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv",row.names=FALSE)
 
 ```
 
 # Correlation test between variables
 
 ```{r echo = FALSE}
-coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
-cor(coffee.clean[,2:8])
+#coffee.clean <- read.csv("/Users/sunyazhu/Desktop/University of Glasgow/R program/AllDatasetsR/coffee_clean.csv")
+cor(coffee[,2:7])
 ```
 
 
@@ -168,33 +166,40 @@ coffee
 
 # Modeling
 
-```{r echo=TRUE}
-model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"),
+```{r echo=TRUE, include=FALSE}
+coffee$Qualityclass <- as.factor(coffee$Qualityclass)
+model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"), data=coffee)
+model2 <- glm(Qualityclass~aroma,family=binomial(link="logit"),
               data=coffee)
-model2 <- glm(Qualityclass~aroma*flavor+acidity,family=binomial(link="logit"),
+model3 <- glm(Qualityclass~flavor,family=binomial(link="logit"),
               data=coffee)
-model3 <- glm(Qualityclass~aroma+flavor*acidity,family=binomial(link="logit"),
+model4 <- glm(Qualityclass~acidity,family=binomial(link="logit"),
               data=coffee)
-model4 <- glm(Qualityclass~aroma*acidity+flavor,family=binomial(link="logit"),
+model5 <- glm(Qualityclass~aroma+flavor,family=binomial(link="logit"),
               data=coffee)
-model5 <- glm(Qualityclass~aroma*flavor+aroma*acidity,family=binomial(link="logit"),
+model6 <- glm(Qualityclass~flavor+acidity,family=binomial(link="logit"),
               data=coffee)
-model6 <- glm(Qualityclass~aroma*flavor+acidity*flavor,family=binomial(link="logit"),
+model7 <- glm(Qualityclass~aroma+acidity,family=binomial(link="logit"),
               data=coffee)
-model7 <- glm(Qualityclass~aroma*acidity+flavor*acidity,family=binomial(link="logit"),
+model8 <- glm(Qualityclass~aroma*flavor+acidity,family=binomial(link="logit"),
               data=coffee)
-model8 <- glm(Qualityclass~aroma*flavor+acidity*flavor+acidity*aroma,family=binomial(link="logit"),
+model9 <- glm(Qualityclass~aroma+flavor*acidity,family=binomial(link="logit"),
               data=coffee)
-model9 <- glm(Qualityclass~aroma*flavor*acidity,family=binomial(link="logit"),
+model10 <- glm(Qualityclass~aroma*acidity+flavor,family=binomial(link="logit"),
               data=coffee)
-model10 <- glm(Qualityclass~aroma+flavor,family=binomial(link="logit"),
+model11 <- glm(Qualityclass~aroma*flavor+aroma*acidity,family=binomial(link="logit"),
               data=coffee)
-model11 <- glm(Qualityclass~flavor+acidity,family=binomial(link="logit"),
+model12 <- glm(Qualityclass~aroma*flavor+acidity*flavor,family=binomial(link="logit"),
               data=coffee)
-model12 <- glm(Qualityclass~aroma+acidity,family=binomial(link="logit"),
+model13 <- glm(Qualityclass~aroma*acidity+flavor*acidity,family=binomial(link="logit"),
               data=coffee)
-anova(model1,model2,model3,model4,model5,model6,model7,
-      model8,model9,model10,model11,model12)
+model14 <- glm(Qualityclass~aroma*flavor+acidity*flavor+acidity*aroma,family=binomial(link="logit")
+               ,data=coffee)
+model15 <- glm(Qualityclass~aroma*flavor*acidity,family=binomial(link="logit"),
+              data=coffee)
+anova(model1,model2,model3,model4,model5,
+      model6,model7,model8,model9,model10,
+      model11,model12,model13,model14,model15)
 summary(model9)
 AIC(model1)
 AIC(model2)
@@ -208,10 +213,56 @@ AIC(model9)
 AIC(model10)
 AIC(model11)
 AIC(model12)
+AIC(model13)
+AIC(model14)
+AIC(model15)
+
+
+```
+
+
+```{r echo=TRUE}
+Modelname <- c("model1","model2","model3","model4",
+                         "model5","model6","model7","model8",
+                         "model9","model10","model11","model12",
+                         "model13","model14","model15")
+AIC <- c(model1$aic,model2$aic,model3$aic,model4$aic,
+         model5$aic,model6$aic,model7$aic,model8$aic,
+         model9$aic,model10$aic,model11$aic,model12$aic,
+         model13$aic,model14$aic,model15$aic)
+Deviance <- c(model1$deviance,model2$deviance,model3$deviance,
+              model4$deviance,model5$deviance,model6$deviance,
+              model7$deviance,model8$deviance,model9$deviance,
+              model10$deviance,model11$deviance,model12$deviance,
+              model13$deviance,model14$deviance,model15$deviance)
+table_values <- data.frame(Modelname, Deviance, AIC)
+table_values <- as.data.frame(table_values)
+table_values %>%
+  transmute(Modelname=Modelname, Deviance=Deviance, AIC=AIC) %>%
+  kable(caption = '\\label{tab:summary} AIC of each model',
+booktabs = TRUE, linesep = "", digits = 2) %>%
+  kable_styling(font_size = 16, latex_options = "hold_position")
+
+```
+
+# Multicollinearity test of model
+
+```{r echo=TRUE}
+vif(model1)
+vif(model5)
+vif(model6)
+vif(model7)
+vif(model8)
+vif(model9)
+vif(model10)
+vif(model11)
+vif(model12)
+vif(model13)
+vif(model14)
+vif(model15)
 ```
 
 ```{r echo=TRUE}
-library(ROCR)
 coffee.pr <- predict(model1, type="response")
 score <- prediction(coffee.pr,coffee$Qualityclass)
 perf <- performance(score,"tpr","fpr")
