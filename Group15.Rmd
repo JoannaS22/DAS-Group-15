@@ -32,17 +32,19 @@ library(GGally)
 
 This data come from the Coffee Quality Database (CQD). The database contains information from the CoffeevQuality Institute which is a non-profit organisation working internationally to improve the quality of coffee and the lives of the people who produce it. Each of the 5 datasets contain information on features of coffee and its production including an overall score of quality.
 
-Table: \label{tab:BEofD}Brief Explanation of the Data.
+
+
 Variable                  | Explanation    
 :------------------------:|:------------------------------
-• country_of_origin       |Country where the coffee bean originates from. 
-• aroma                   |Aroma grade (ranging from 0-10) 
-• flavor                  |Flavour grade (ranging from 0-10) 
-• acidity                 |Acidity grade (ranging from 0-10) 
-• category_two_defects    |Count of category 2 type defects in the batch of coffee beans tested. 
-• altitude_mean_meters    |Mean altitude of the growers farm (in metres)
-• harvested               |Year the batch was harvested 
-• Qualityclass            |Quality score for the batch (Good - >= 82.5, Poor - \<82.5).
+  country_of_origin       |Country where the coffee bean originates from. 
+  aroma                   |Aroma grade (ranging from 0-10) 
+  flavor                  |Flavour grade (ranging from 0-10) 
+  acidity                 |Acidity grade (ranging from 0-10) 
+  category_two_defects    |Count of category 2 type defects in the batch of coffee beans tested. 
+  altitude_mean_meters    |Mean altitude of the growers farm (in metres)
+  harvested               |Year the batch was harvested 
+  Qualityclass            |Quality score for the batch (Good - >= 82.5, Poor - \<82.5).
+Table: \label{tab:BEofD}Brief Explanation of the Data.
 
 # Data Cleaning
 
@@ -50,7 +52,7 @@ First clear the null lines in the data, and then delete all lines with the line 
 
 ```{r echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 #coffee.data <- read.csv("dataset15.csv")
-coffee.data <- read.csv("dataset15.csv")
+coffee.data <- read.csv("C:/Users/hello/Downloads/dataset15.csv")
 coffee <- na.omit(coffee.data)
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 ```
@@ -167,15 +169,21 @@ grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
 # Standardized data
 After data cleaning, we standardized the data:
 ```{r echo = TRUE, warning=FALSE, message=FALSE,results='hide'}
-## Creates a logical vector that determines which columns in the data box coffee contain numeric data. It uses the function sapply to determine whether the data type of each column is numeric.
+## Creates a logical vector that determines which columns in the data box coffee contain
+## numeric data. It uses the function sapply to determine whether the data type of each
+## column is numeric.
 numeric_cols <- sapply(coffee,is.numeric)
-## The columns containing only numerical data in data box coffee are extracted and assigned to new data box numeric_coffee
+## The columns containing only numerical data in data box coffee are extracted and
+## assigned to new data box numeric_coffee
 numeric_coffee <- coffee[,numeric_cols]
-## A new data box scaled_coffee is obtained by standardizing numerical data in numeric_coffee. The standardization process is to transform the data range of different variables into the same scale for easy comparison.
+## A new data box scaled_coffee is obtained by standardizing numerical data in numeric_coffee.
+## The standardization process is to transform the data range of different variables into
+## the same scale for easy comparison.
 scaled_coffee <- as.data.frame(scale(numeric_coffee))
 ## Add the category_two_defects column from the original data box coffee to scaled_coffee.
 scaled_coffee$category_two_defects <- coffee$category_two_defects
-## Assign the numerical data in the standardized data frame scaled_coffee back to the corresponding column in the original data frame coffee, and overwrite the original data.
+## Assign the numerical data in the standardized data frame scaled_coffee back to the
+## corresponding column in the original data frame coffee, and overwrite the original data.
 coffee[,numeric_cols] <- scaled_coffee
 ```
 
@@ -234,14 +242,16 @@ AIC(model13)
 AIC(model14)
 AIC(model15)
 ```
+ 
+   
 
-
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=TRUE, warning=FALSE, message=FALSE}
 Modelname <- c("aroma+flavor+acidity","aroma","flavor","acidity",
               "aroma+flavor","flavor+acidity","aroma+acidity","aroma*flavor+acidity",
               "aroma+flavor*acidity","aroma*acidity+flavor",
               "aroma*flavor+aroma*acidity","aroma*flavor+acidity*flavor",
-              "aroma*acidity+flavor*acidity","aroma*flavor+acidity*flavor+acidity*aroma","aroma*flavor*acidity")
+              "aroma*acidity+flavor*acidity","aroma*flavor+acidity*flavor+acidity*aroma",
+              "aroma*flavor*acidity")
 AIC <- c(model1$aic,model2$aic,model3$aic,model4$aic,
          model5$aic,model6$aic,model7$aic,model8$aic,
          model9$aic,model10$aic,model11$aic,model12$aic,
@@ -307,10 +317,10 @@ p1
 
 According to the two models we finally select,
 $$
-model1:y = 0.006953 + 1.207428 \cdot \text{aroma} + 1.967400 \cdot \text{flavor} + 1.152111 \cdot \text{acidity}
+model1:\log\left(\frac{p}{1-p}\right) = 0.006953 + 1.207428 \cdot \text{aroma} + 1.967400 \cdot \text{flavor} + 1.152111 \cdot \text{acidity}
 $$
 $$
-model8:y = 0.01235 + 1.27183 \cdot \text{aroma} + 2.04471 \cdot \text{flavor} + 1.13574 \cdot \text{acidity} - 0.55495
+model8:\log\left(\frac{p}{1-p}\right) = 0.01235 + 1.27183 \cdot \text{aroma} + 2.04471 \cdot \text{flavor} + 1.13574 \cdot \text{acidity} - 0.55495 \cdot \text{aroma} \cdot \text{flavor}
 $$
 we believe that the quality of coffee is positively correlated with aroma, acidity and flavor, while the three features of category_two_defects, altitude_mean_meters and harvested have no significant impact on the quality of coffee.
 
