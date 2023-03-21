@@ -51,8 +51,7 @@ Table: \label{tab:BEofD}Brief Explanation of the Data.
 First clear the null lines in the data, and then delete all lines with the line name *Taiwan* since *Taiwan* is not a country.
 
 ```{r echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
-#coffee.data <- read.csv("dataset15.csv")
-coffee.data <- read.csv("C:/Users/hello/Downloads/dataset15.csv")
+coffee.data <- read.csv("dataset15.csv")
 coffee <- na.omit(coffee.data)
 coffee<- subset(coffee, country_of_origin != 'Taiwan')
 ```
