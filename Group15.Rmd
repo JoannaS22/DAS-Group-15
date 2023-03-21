@@ -28,15 +28,19 @@ library(GGally)
 
 # Data Introduction
 
-This data come from the Coffee Quality Database (CQD). The database contains information from the CoffeevQuality Institute which is a non-profit organisation working internationally to improve the quality of coffee and thelives of the people who produce it. Each of the 5 datasets contain information on features of coffee and its production includinan overall score of quality. 
-• *country_of_origin* -- Country where the coffee bean originates from. 
-• *aroma* -- Aroma grade (ranging from 0-10) 
-• *flavor* -- Flavour grade (ranging from 0-10) 
-• *acidity* -- Acidity grade (ranging from 0-10) 
-• *category_two_defects* -- Count of category 2 type defects in the batch of coffee beans tested. 
-• *altitiude_mean_meters* -- Mean altitude of the growers farm (in metres)
-• *harvested* -- Year the batch was harvested 
-• *Qualityclass* -- Quality score for the batch (Good - >= 82.5, Poor - \<82.5).
+This data come from the Coffee Quality Database (CQD). The database contains information from the CoffeevQuality Institute which is a non-profit organisation working internationally to improve the quality of coffee and the lives of the people who produce it. Each of the 5 datasets contain information on features of coffee and its production including an overall score of quality.
+
+Table: \label{tab:BEofD}Brief Explanation of the Data.
+Variable                  | Explanation    
+:------------------------:|:------------------------------
+• country_of_origin       |Country where the coffee bean originates from. 
+• aroma                   |Aroma grade (ranging from 0-10) 
+• flavor                  |Flavour grade (ranging from 0-10) 
+• acidity                 |Acidity grade (ranging from 0-10) 
+• category_two_defects    |Count of category 2 type defects in the batch of coffee beans tested. 
+• altitude_mean_meters    |Mean altitude of the growers farm (in metres)
+• harvested               |Year the batch was harvested 
+• Qualityclass            |Quality score for the batch (Good - >= 82.5, Poor - \<82.5).
 
 # Data Cleaning
 
@@ -71,7 +75,7 @@ ggpairs(coffee_nocountry) +
     colour = NA,
     size = 1))
 ```
-From the results of the correlation test, only aroma, flavor, and acidity are highly correlated with Qualityclass, while the correlation between category_two_defects, altitiude_mean_meters, harvested, and Qualityclass is very low.
+From the results of the correlation test, only aroma, flavor, and acidity are highly correlated with Qualityclass, while the correlation between category_two_defects, altitude_mean_meters, harvested, and Qualityclass is very low.
 
 ## Cleaning outliers
 The IQR method is used to identify outliers in coffee. 
@@ -96,16 +100,14 @@ IQR_acidity <- IQR(coffee$acidity)
 Lower_acidity <- quantiles_acidity[1]-1.5*IQR_acidity
 Upper_acidity <- quantiles_acidity[2]+1.5*IQR_acidity
 coffee<- subset(coffee,coffee$acidity>Lower_acidity & coffee$acidity< Upper_acidity)
-```
 
-## Store the cleared data
 
-```{r, warning=FALSE, message=FALSE}
+# Store the cleared data
 write.csv(coffee,file="coffee_clean.csv",row.names=FALSE)
 ```
 
-# Correlation test between variables
-
+## Correlation test between variables
+Correlation test of data after cleaning:
 ```{r echo = TRUE, warning=FALSE, message=FALSE}
 coffee.clean <- read.csv("coffee_clean.csv")
 cor(coffee[,2:7])
@@ -113,7 +115,6 @@ cor(coffee[,2:7])
 
 
 # Data visualization
-
 
 ```{r echo = TRUE, warning=FALSE, message=FALSE}
 library(gridExtra)
@@ -162,7 +163,7 @@ grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, nrow=3, ncol=2)
 ```
 
 # Standardized data
-
+After data cleaning, we standardized the data:
 ```{r echo = TRUE, warning=FALSE, message=FALSE,results='hide'}
 ## Creates a logical vector that determines which columns in the data box coffee contain numeric data. It uses the function sapply to determine whether the data type of each column is numeric.
 numeric_cols <- sapply(coffee,is.numeric)
@@ -177,8 +178,10 @@ coffee[,numeric_cols] <- scaled_coffee
 ```
 
 # Modeling
+
+## Fit 15 generalized linear models
 With Qualityclass as the response variable and aroma, flavor, and acidity as independent variables, 15 different generalized linear models were fitted, and Deviance, and AIC of each model were calculated.
-```{r echo=TRUE, warning=FALSE, message=FALSE,include=FALSE}
+```{r echo=TRUE, warning=FALSE}
 model1 <- glm(Qualityclass~aroma+flavor+acidity,family=binomial(link="logit"), data=coffee)
 model2 <- glm(Qualityclass~aroma,family=binomial(link="logit"),
               data=coffee)
@@ -211,7 +214,8 @@ model15 <- glm(Qualityclass~aroma*flavor*acidity,family=binomial(link="logit"),
 anova(model1,model2,model3,model4,model5,
       model6,model7,model8,model9,model10,
       model11,model12,model13,model14,model15)
-summary(model9)
+summary(model1)
+summary(model8)
 AIC(model1)
 AIC(model2)
 AIC(model3)
@@ -255,9 +259,9 @@ booktabs = TRUE, linesep = "", digits = 2) %>%
 
 ```
 
-# Multicollinearity test of model
-
-```{r echo=TRUE,warning=FALSE, message=FALSE}
+## Multicollinearity test of model
+VIF (Variance inflation factor) is a statistical index used to detect whether there is collinearity between independent variables. The higher the VIF, the stronger the collinearity between the independent variables, which may lead to instability and inaccuracy of the model.
+```{r echo=TRUE}
 vif(model1)
 vif(model5)
 vif(model6)
@@ -271,8 +275,10 @@ vif(model13)
 vif(model14)
 vif(model15)
 ```
-Receiver Operating Characteristic (ROC) curve shows the performance of a model1. 
-The area under the ROC curve (AUC) is 0.94, which indicates a good classification performance.
+
+Comprehensive comparison of Deviance, AIC and VIF of each model, we think model1 and model8 are the two models with the best performance.
+The two Receiver Operating Characteristic (ROC) curves below show the performance of model1 and model8. 
+The areas under the two ROC curves (AUC) are 0.94 and 0.939, which indicate a good classification performance.
 
 ```{r echo=TRUE, warning=FALSE, message=FALSE}
 coffee.pr <- predict(model1, type="response")
@@ -282,6 +288,27 @@ auc <- performance(score,"auc")
 perfd <- data.frame(x= perf@x.values[1][[1]], y=perf@y.values[1][[1]])
 p1 <- ggplot(perfd, aes(x= x, y=y)) + geom_line() +
   xlab("False positive rate") + ylab("True positive rate") +
-  ggtitle(paste("Area under the curve:", round(auc@y.values[[1]], 3)))
+  ggtitle(paste("model1:Area under the curve:", round(auc@y.values[[1]], 3)))
+p1
+coffee.pr <- predict(model8, type="response")
+score <- prediction(coffee.pr,coffee$Qualityclass)
+perf <- performance(score,"tpr","fpr")
+auc <- performance(score,"auc")
+perfd <- data.frame(x= perf@x.values[1][[1]], y=perf@y.values[1][[1]])
+p1 <- ggplot(perfd, aes(x= x, y=y)) + geom_line() +
+  xlab("False positive rate") + ylab("True positive rate") +
+  ggtitle(paste("model8:Area under the curve:", round(auc@y.values[[1]], 3)))
 p1
 ```
+
+# Conclusion
+
+According to the two models we finally select,
+$$
+model1:y = 0.006953 + 1.207428 \cdot \text{aroma} + 1.967400 \cdot \text{flavor} + 1.152111 \cdot \text{acidity}
+$$
+$$
+model8:y = 0.01235 + 1.27183 \cdot \text{aroma} + 2.04471 \cdot \text{flavor} + 1.13574 \cdot \text{acidity} - 0.55495
+$$
+we believe that the quality of coffee is positively correlated with aroma, acidity and flavor, while the three features of category_two_defects, altitude_mean_meters and harvested have no significant impact on the quality of coffee.
+
